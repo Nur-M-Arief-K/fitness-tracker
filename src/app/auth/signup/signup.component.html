@@ -1,0 +1,58 @@
+<div class="row w-100" >
+    <section class="col-10 col-md-4 mx-auto">
+      <form class="d-flex flex-column gap-3" #f="ngForm" (submit)="onSubmit(f)">
+        <mat-form-field>
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            placeholder="Your Email"
+            ngModel
+            name="email"
+            email
+            required
+            #emailInput="ngModel"
+          />
+          <mat-error *ngIf="emailInput.hasError('required')"
+            >Field must not be empty</mat-error
+          >
+          <mat-error *ngIf="!emailInput.hasError('required')"
+            >Field must be valid email format</mat-error
+          >
+        </mat-form-field>
+    
+        <mat-form-field hintLabel="Password should have at least 6 characters long">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            type="password"
+            placeholder="Your Password"
+            ngModel
+            name="password"
+            minlength="6"
+            required
+            #pwInput="ngModel"
+          />
+          <mat-hint align="end"> {{ pwInput.value?.length }}/ 6</mat-hint>
+          <mat-error>Password should have at least 6 characters long</mat-error>
+        </mat-form-field>
+    
+        <mat-form-field>
+          <mat-label>Your birthdate</mat-label>
+          <input matInput [matDatepicker]="picker" [max]="maxDate" ngModel name="birthdate" required/>
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+    
+        <mat-checkbox color="primary" ngModel name="agree" required>Agree the terms and conditioins</mat-checkbox>
+    
+        <button type="submit" mat-raised-button color="primary" class="col-3 ms-auto" [disabled]="f.invalid">
+          Submit
+        </button>
+      </form>
+    </section>
+</div>
