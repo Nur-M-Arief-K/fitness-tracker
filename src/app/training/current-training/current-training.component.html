@@ -1,6 +1,12 @@
-<section>
-    <mat-progress-spinner mode="determinate" [value]="progress"></mat-progress-spinner>
-    <h2> {{progress}}% </h2>
-    <p>Keep going, you can do it!</p>
-    <button mat-raised-button color="warn" (click)="onStop()">Stop</button>
+<section class="row row-cols-1 justify-content-center text-center vw-100">
+  <mat-progress-spinner
+    class="col"
+    mode="determinate"
+    [value]="progress"
+  ></mat-progress-spinner>
+  <h2 class="col">{{ progress }}%</h2>
+  <p class="col">Keep going, you can do it!</p>
+  <button class="col-3" mat-raised-button color="warn" (click)="onStop()">
+    Stop
+  </button>
 </section>

@@ -1,1 +1,39 @@
-<p>login works!</p>
+<div class="row w-100">
+  <section class="col-10 col-md-4 mx-auto">
+    <form
+      class="d-flex flex-column gap-3"
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+    >
+      <mat-form-field>
+        <input
+          type="email"
+          matInput
+          placeholder="Your email"
+          formControlName="email"
+        />
+        <mat-hint>Please enter a valid email.</mat-hint>
+        <mat-error>Invalid or missing email.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input
+          type="password"
+          matInput
+          placeholder="Your password"
+          formControlName="password"
+        />
+        <mat-hint>Please enter your password.</mat-hint>
+        <mat-error>Missing password.</mat-error>
+      </mat-form-field>
+      <button
+        class="col-3 ms-auto"
+        type="submit"
+        mat-raised-button
+        color="primary"
+        [disabled]="loginForm.invalid"
+      >
+        Submit
+      </button>
+    </form>
+  </section>
+</div>
