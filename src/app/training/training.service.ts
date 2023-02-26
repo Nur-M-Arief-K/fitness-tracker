@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Exercise } from './exercise.model';
+import {
+  Firestore,
+  collection,
+  collectionChanges,
+  doc,
+  addDoc,
+  updateDoc,
+} from '@angular/fire/firestore';
+import { map, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingService {
-  private availableExercises: Exercise[] = [
-    { id: 'crunches', name: 'Crunches', duration: 30, calories: 8 },
-    { id: 'touch-toes', name: 'Touch Toes', duration: 180, calories: 15 },
-    { id: 'side-lunges', name: 'Side Lunges', duration: 120, calories: 18 },
-    { id: 'burpees', name: 'Burpees', duration: 60, calories: 8 },
-  ];
-
-  get getAvailableExercises() {
-    return this.availableExercises.slice();
-  }
+  private availableExercises: Exercise[] = [];
 
   private runnningExercise: Exercise | undefined | null;
 
@@ -23,13 +23,64 @@ export class TrainingService {
     return { ...this.runnningExercise };
   }
 
-  private exercises: Exercise[] = [];
+  private fbSubs: Subscription[] = [];
 
   exerciseChanged = new Subject<Exercise | null>();
 
-  startExercise(seelctedId: string) {
+  exercisesChanged = new Subject<Exercise[]>();
+
+  finishedExercisesChanged = new Subject<Exercise[]>();
+
+  constructor(private firestore: Firestore) {}
+
+  fetchCompletedOrCancelledExercises() {
+    const collectionRef = collection(this.firestore, 'finishedExercises');
+    this.fbSubs.push(collectionChanges(collectionRef)
+      .pipe(
+        map((docArray) =>
+          docArray.map((doc) => ({
+            id: doc.doc.id,
+            name: doc.doc.data()['name'],
+            duration: doc.doc.data()['duration'],
+            calories: doc.doc.data()['calories'],
+            state: doc.doc.data()['state'],
+            date: doc.doc.data()['date'].toDate(),
+          }))
+        )
+      )
+      .subscribe({
+        next: (exercises: Exercise[]) => {
+          this.finishedExercisesChanged.next(exercises);
+        },
+      }));
+  }
+
+  fetchAvailableExercises() {
+    const collectionRef = collection(this.firestore, 'availableExercises');
+    this.fbSubs.push(collectionChanges(collectionRef)
+      .pipe(
+        map((docArray) =>
+          docArray.map((doc) => ({
+            id: doc.doc.id,
+            name: doc.doc.data()['name'],
+            duration: doc.doc.data()['duration'],
+            calories: doc.doc.data()['calories'],
+          }))
+        )
+      )
+      .subscribe({
+        next: (exercises: Exercise[]) => {
+          this.availableExercises = exercises;
+          this.exercisesChanged.next([...this.availableExercises]);
+        },
+      }));
+  }
+
+  startExercise(selectedId: string) {
+    // const docRef = doc(this.firestore, `availableExercises/${selectedId}`);
+    // updateDoc(docRef, {lastSelected: new Date()});
     this.runnningExercise = this.availableExercises.find(
-      (ex) => ex.id == seelctedId
+      (ex) => ex.id == selectedId
     );
     if (typeof this.runnningExercise == 'object') {
       this.exerciseChanged.next({ ...this.runnningExercise });
@@ -37,7 +88,7 @@ export class TrainingService {
   }
 
   completeExercise() {
-    this.exercises.push({
+    this.addDataToDatabase({
       ...(this.runnningExercise as Exercise),
       date: new Date(),
       state: 'completed',
@@ -47,7 +98,7 @@ export class TrainingService {
   }
 
   cancelExercise(progress: number) {
-    this.exercises.push({
+    this.addDataToDatabase({
       ...(this.runnningExercise as Exercise),
       duration: <number>this.runnningExercise?.duration * (progress / 100),
       calories: <number>this.runnningExercise?.calories * (progress / 100),
@@ -58,8 +109,12 @@ export class TrainingService {
     this.exerciseChanged.next(null);
   }
 
-  get getExercises() {
-    return this.exercises.slice();
+  private addDataToDatabase(exercise: Exercise) {
+    const collectionRef = collection(this.firestore, 'finishedExercises');
+    addDoc(collectionRef, exercise);
   }
-  
+
+  cancelSubscriptions() {
+    this.fbSubs.forEach(subscription => subscription.unsubscribe());
+  }
 }
