@@ -8,8 +8,10 @@ import {
   doc,
   addDoc,
   updateDoc,
+  FirestoreError
 } from '@angular/fire/firestore';
 import { map, Subscription } from 'rxjs';
+import { UiService } from '../shared/ui.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,11 +29,11 @@ export class TrainingService {
 
   exerciseChanged = new Subject<Exercise | null>();
 
-  exercisesChanged = new Subject<Exercise[]>();
+  exercisesChanged = new Subject<Exercise[] | null>();
 
   finishedExercisesChanged = new Subject<Exercise[]>();
 
-  constructor(private firestore: Firestore) {}
+  constructor(private firestore: Firestore, private uiService: UiService) {}
 
   fetchCompletedOrCancelledExercises() {
     const collectionRef = collection(this.firestore, 'finishedExercises');
@@ -59,7 +61,7 @@ export class TrainingService {
     const collectionRef = collection(this.firestore, 'availableExercises');
     this.fbSubs.push(collectionChanges(collectionRef)
       .pipe(
-        map((docArray) =>
+        map((docArray) => 
           docArray.map((doc) => ({
             id: doc.doc.id,
             name: doc.doc.data()['name'],
@@ -72,7 +74,13 @@ export class TrainingService {
         next: (exercises: Exercise[]) => {
           this.availableExercises = exercises;
           this.exercisesChanged.next([...this.availableExercises]);
+          this.uiService.loadingStateChanged.next(false);
         },
+        error: (err: FirestoreError) => {
+          this.uiService.showSnackbar(err.message, undefined, 3000);
+          this.uiService.loadingStateChanged.next(false);
+          this.exercisesChanged.next(null);
+        }
       }));
   }
 

@@ -6,12 +6,13 @@ import {
   signInWithEmailAndPassword,
   signOut,
   authState,
+  AuthError,
 } from '@angular/fire/auth';
 import { Subject } from 'rxjs';
 
 import { AuthData } from './auth-data.model';
-import { User } from './user.model';
 import { TrainingService } from '../training/training.service';
+import { UiService } from '../shared/ui.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +24,8 @@ export class AuthService {
   constructor(
     private router: Router,
     private auth: Auth,
-    private trainingService: TrainingService
+    private trainingService: TrainingService,
+    private uiService: UiService
   ) {}
 
   initAuthListener() {
@@ -44,19 +46,31 @@ export class AuthService {
   }
 
   registerUser(authData: AuthData) {
+    this.uiService.loadingStateChanged.next(true);
     createUserWithEmailAndPassword(this.auth, authData.email, authData.password)
       .then((res) => {
         console.log(res);
       })
-      .catch((err) => console.log(err));
+      .catch((err: AuthError) => {
+        this.uiService.showSnackbar(err.message, undefined, 3000);
+      })
+      .finally(() => {
+        this.uiService.loadingStateChanged.next(false);
+      });
   }
 
   login(authData: AuthData) {
+    this.uiService.loadingStateChanged.next(true);
     signInWithEmailAndPassword(this.auth, authData.email, authData.password)
       .then((res) => {
         console.log(res);
       })
-      .catch((err) => console.log(err));
+      .catch((err: AuthError) => {
+        this.uiService.showSnackbar(err.message, undefined, 3000);
+      })
+      .finally(() => {
+        this.uiService.loadingStateChanged.next(false);
+      });
   }
 
   logout() {
