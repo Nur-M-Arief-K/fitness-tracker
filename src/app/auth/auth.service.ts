@@ -49,7 +49,6 @@ export class AuthService {
     this.store.dispatch(startLoadingAction());
     createUserWithEmailAndPassword(this.auth, authData.email, authData.password)
       .then((res) => {
-        console.log(res);
       })
       .catch((err: AuthError) => {
         this.uiService.showSnackbar(err.message, undefined, 3000);
@@ -63,7 +62,6 @@ export class AuthService {
     this.store.dispatch(startLoadingAction());
     signInWithEmailAndPassword(this.auth, authData.email, authData.password)
       .then((res) => {
-        console.log(res);
       })
       .catch((err: AuthError) => {
         this.uiService.showSnackbar(err.message, undefined, 3000);

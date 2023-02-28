@@ -4,7 +4,6 @@ import { MatSort } from '@angular/material/sort';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
 import { MatPaginator } from '@angular/material/paginator';
-import { Subscription } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppCompleteState } from 'src/app/app.reducer';
 import { selectFinishedExercises } from 'src/app/shared/reducers/training/training.selector';
@@ -22,7 +21,7 @@ export class PastTrainingComponent implements OnInit, AfterViewInit {
 
   constructor(
     private trainingService: TrainingService,
-    private store: Store<AppCompleteState>
+    private store: Store<AppCompleteState>,
   ) {}
 
   doFilter(filterValue: string) {
@@ -30,12 +29,12 @@ export class PastTrainingComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.store
-      .select(selectFinishedExercises)
-      .subscribe((exercises: Exercise[]) => {
-        this.dataSource.data = exercises;
-      });
     this.trainingService.fetchCompletedOrCancelledExercises();
+    this.store.select(selectFinishedExercises).subscribe({
+      next: (exercises: Exercise[]) => {
+        this.dataSource.data = exercises;
+      },
+    });
   }
 
   ngAfterViewInit(): void {

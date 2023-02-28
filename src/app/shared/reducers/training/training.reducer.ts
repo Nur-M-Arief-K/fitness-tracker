@@ -19,9 +19,9 @@ export const trainingReducer = createReducer(
     ...state,
     availableExercises: availableExercises,
   })),
-  on(setFinishedTraining, (state, { finishedExercises }) => ({
+  on(setFinishedTraining, (state, { newfinishedExercises }) => ({
     ...state,
-    finishedExercises: finishedExercises,
+    finishedExercises: newfinishedExercises,
   })),
   on(startTraining, (state, { exercise }) => ({
     ...state,

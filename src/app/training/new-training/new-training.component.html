@@ -1,7 +1,7 @@
 <section class="col-10 col-md-6 mx-auto mt-3 text-center">
   <form (ngSubmit)="onStartTraining(f)" #f="ngForm">
     <mat-card >
-      <mat-card-title>Time to start a workout!</mat-card-title>
+      <mat-card-title class="p-3">Time to start a workout!</mat-card-title>
       <mat-card-content >
         <mat-form-field *ngIf="!(isLoading$ | async) && (exercises$ | async)">
           <mat-label>Select type of training</mat-label>

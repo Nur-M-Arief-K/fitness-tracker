@@ -8,7 +8,7 @@ export const setAvailableTraining = createAction(
 );
 export const setFinishedTraining = createAction(
   TRAINING_TYPES.SET_FINISHED_TRAININGS,
-  props<{ finishedExercises: Exercise[] }>()
+  props<{ newfinishedExercises: Exercise[] }>()
 );
 export const startTraining = createAction(
   TRAINING_TYPES.START_TRAINING,

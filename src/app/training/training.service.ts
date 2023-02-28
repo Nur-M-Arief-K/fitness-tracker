@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
 import { Exercise } from './exercise.model';
 import {
   Firestore,
   collection,
-  collectionChanges,
-  doc,
   addDoc,
-  updateDoc,
   FirestoreError,
+  collectionSnapshots,
+  collectionChanges,
 } from '@angular/fire/firestore';
 import { map, Subscription, take } from 'rxjs';
 import { UiService } from '../shared/ui.service';
@@ -38,23 +36,23 @@ export class TrainingService {
   fetchCompletedOrCancelledExercises() {
     const collectionRef = collection(this.firestore, 'finishedExercises');
     this.fbSubs.push(
-      collectionChanges(collectionRef)
+      collectionSnapshots(collectionRef)
         .pipe(
-          map((docArray) =>
-            docArray.map((doc) => ({
-              id: doc.doc.id,
-              name: doc.doc.data()['name'],
-              duration: doc.doc.data()['duration'],
-              calories: doc.doc.data()['calories'],
-              state: doc.doc.data()['state'],
-              date: doc.doc.data()['date'].toDate(),
+          map((docs) =>
+            docs.map((doc) => ({
+              id: doc.data()['id'],
+              name: doc.data()['name'],
+              duration: doc.data()['duration'],
+              calories: doc.data()['calories'],
+              state: doc.data()['state'],
+              date: doc.data()['date'].toDate(),
             }))
           )
         )
         .subscribe({
           next: (exercises: Exercise[]) => {
             this.store.dispatch(
-              setFinishedTraining({ finishedExercises: exercises })
+              setFinishedTraining({ newfinishedExercises: exercises })
             );
           },
         })
@@ -64,14 +62,14 @@ export class TrainingService {
   fetchAvailableExercises() {
     const collectionRef = collection(this.firestore, 'availableExercises');
     this.fbSubs.push(
-      collectionChanges(collectionRef)
+      collectionSnapshots(collectionRef)
         .pipe(
-          map((docArray) =>
-            docArray.map((doc) => ({
-              id: doc.doc.id,
-              name: doc.doc.data()['name'],
-              duration: doc.doc.data()['duration'],
-              calories: doc.doc.data()['calories'],
+          map((docs) =>
+            docs.map((doc) => ({
+              id: doc.id,
+              name: doc.data()['name'],
+              duration: doc.data()['duration'],
+              calories: doc.data()['calories'],
             }))
           )
         )
@@ -95,27 +93,33 @@ export class TrainingService {
   }
 
   completeExercise() {
-    this.store.select(selectActiveExercise).pipe(take(1)).subscribe((ex) => {
-      this.addDataToDatabase({
-        ...(ex as Exercise),
-        date: new Date(),
-        state: 'completed',
+    this.store
+      .select(selectActiveExercise)
+      .pipe(take(1))
+      .subscribe((ex) => {
+        this.addDataToDatabase({
+          ...(ex as Exercise),
+          date: new Date(),
+          state: 'completed',
+        });
+        this.store.dispatch(stopTraining());
       });
-      this.store.dispatch(stopTraining());
-    });
   }
 
   cancelExercise(progress: number) {
-    this.store.select(selectActiveExercise).pipe(take(1)).subscribe((ex) => {
-      this.addDataToDatabase({
-        ...(ex as Exercise),
-        duration: <number>ex?.duration * (progress / 100),
-        calories: <number>ex?.calories * (progress / 100),
-        date: new Date(),
-        state: 'cancelled',
+    this.store
+      .select(selectActiveExercise)
+      .pipe(take(1))
+      .subscribe((ex) => {
+        this.addDataToDatabase({
+          ...(ex as Exercise),
+          duration: <number>ex?.duration * (progress / 100),
+          calories: <number>ex?.calories * (progress / 100),
+          date: new Date(),
+          state: 'cancelled',
+        });
+        this.store.dispatch(stopTraining());
       });
-      this.store.dispatch(stopTraining());
-    });
   }
 
   private addDataToDatabase(exercise: Exercise) {

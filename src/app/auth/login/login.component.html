@@ -1,5 +1,6 @@
 <div class="row w-100">
   <section class="col-10 col-md-4 mx-auto">
+    <span class="fs-1 py-5 d-block">Login</span>
     <form
       class="d-flex flex-column gap-3"
       [formGroup]="loginForm"
@@ -35,7 +36,7 @@
       >
         Submit
       </button>
-      <mat-spinner *ngIf="isLoading$ | async" class="mx-auto"></mat-spinner>
+      <mat-spinner *ngIf="isLoading$ | async" class="ms-auto" [diameter]="50"></mat-spinner>
     </form>
   </section>
 </div>
