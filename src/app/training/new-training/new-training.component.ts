@@ -1,24 +1,25 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TrainingService } from '../training.service';
-import {  Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Exercise } from '../exercise.model';
-import { UiService } from 'src/app/shared/ui.service';
+import { Store } from '@ngrx/store';
+import { AppCompleteState } from 'src/app/app.reducer';
+import { selectIsLoading } from 'src/app/shared/reducers/ui/ui.selector';
+import { selectAvailableExercises } from 'src/app/shared/reducers/training/training.selector';
 
 @Component({
   selector: 'app-new-training',
   templateUrl: './new-training.component.html',
   styleUrls: ['./new-training.component.scss'],
 })
-export class NewTrainingComponent implements OnInit, OnDestroy {
-  exercises: Exercise[] | null;
-  isLoading: boolean = true;
-  exerciseSubscription: Subscription;
-  loadingSubscription: Subscription;
+export class NewTrainingComponent implements OnInit {
+  exercises$: Observable<Exercise[] | null | undefined> ;
+  isLoading$: Observable<boolean>;
 
   constructor(
     private trainingService: TrainingService,
-    private uiService: UiService
+    private store: Store<AppCompleteState>
   ) {}
 
   onStartTraining(form: NgForm) {
@@ -26,25 +27,12 @@ export class NewTrainingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.exerciseSubscription = this.trainingService.exercisesChanged.subscribe(
-      (exercises) => (this.exercises = exercises)
-    );
-    this.loadingSubscription = this.uiService.loadingStateChanged.subscribe(
-      (loadingState) => (this.isLoading = loadingState)
-    );
-    this.fetchExercises()
+    this.exercises$ = this.store.select(selectAvailableExercises);
+    this.isLoading$ = this.store.select(selectIsLoading);
+    this.fetchExercises();
   }
 
   fetchExercises() {
     this.trainingService.fetchAvailableExercises();
-  }
-
-  ngOnDestroy(): void {
-    if(this.exerciseSubscription) {
-      this.exerciseSubscription.unsubscribe();
-    }
-    if(this.loadingSubscription) {
-      this.loadingSubscription.unsubscribe();
-    }
   }
 }
